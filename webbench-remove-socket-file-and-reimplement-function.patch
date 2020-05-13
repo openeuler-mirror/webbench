@@ -1,0 +1,184 @@
+diff -urN webbench-1.5/Makefile webbench-1.5-bak/Makefile
+--- webbench-1.5/Makefile	2004-06-25 17:59:19.000000000 +0800
++++ webbench-1.5-bak/Makefile	2020-05-03 15:32:02.994638565 +0800
+@@ -12,11 +12,10 @@
+ 	-ctags *.c
+ 
+ install: webbench
++	install -d $(DESTDIR)$(PREFIX)/bin
++	install -d $(DESTDIR)$(PREFIX)/share/man/man1
+ 	install -s webbench $(DESTDIR)$(PREFIX)/bin	
+-	install -m 644 webbench.1 $(DESTDIR)$(PREFIX)/man/man1	
+-	install -d $(DESTDIR)$(PREFIX)/share/doc/webbench
+-	install -m 644 debian/copyright $(DESTDIR)$(PREFIX)/share/doc/webbench
+-	install -m 644 debian/changelog $(DESTDIR)$(PREFIX)/share/doc/webbench
++	install -m 644 webbench.1 $(DESTDIR)$(PREFIX)/share/man/man1	
+ 
+ webbench: webbench.o Makefile
+ 	$(CC) $(CFLAGS) $(LDFLAGS) -o webbench webbench.o $(LIBS) 
+@@ -28,13 +27,13 @@
+ 	-debian/rules clean
+ 	rm -rf $(TMPDIR)
+ 	install -d $(TMPDIR)
+-	cp -p Makefile webbench.c socket.c webbench.1 $(TMPDIR)
++	cp -p Makefile webbench.c webbench.1 $(TMPDIR)
+ 	install -d $(TMPDIR)/debian
+ 	-cp -p debian/* $(TMPDIR)/debian
+ 	ln -sf debian/copyright $(TMPDIR)/COPYRIGHT
+ 	ln -sf debian/changelog $(TMPDIR)/ChangeLog
+ 	-cd $(TMPDIR) && cd .. && tar cozf webbench-$(VERSION).tar.gz webbench-$(VERSION)
+ 
+-webbench.o:	webbench.c socket.c Makefile
++webbench.o:	webbench.c Makefile
+ 
+ .PHONY: clean install all tar
+diff -urN webbench-1.5/socket.c webbench-1.5-bak/socket.c
+--- webbench-1.5/socket.c	2004-01-12 22:46:42.000000000 +0800
++++ webbench-1.5-bak/socket.c	1970-01-01 08:00:00.000000000 +0800
+@@ -1,58 +0,0 @@
+-/* $Id: socket.c 1.1 1995/01/01 07:11:14 cthuang Exp $
+- *
+- * This module has been modified by Radim Kolar for OS/2 emx
+- */
+-
+-/***********************************************************************
+-  module:       socket.c
+-  program:      popclient
+-  SCCS ID:      @(#)socket.c    1.5  4/1/94
+-  programmer:   Virginia Tech Computing Center
+-  compiler:     DEC RISC C compiler (Ultrix 4.1)
+-  environment:  DEC Ultrix 4.3 
+-  description:  UNIX sockets code.
+- ***********************************************************************/
+- 
+-#include <sys/types.h>
+-#include <sys/socket.h>
+-#include <fcntl.h>
+-#include <netinet/in.h>
+-#include <arpa/inet.h>
+-#include <netdb.h>
+-#include <sys/time.h>
+-#include <string.h>
+-#include <unistd.h>
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <stdarg.h>
+-
+-int Socket(const char *host, int clientPort)
+-{
+-    int sock;
+-    unsigned long inaddr;
+-    struct sockaddr_in ad;
+-    struct hostent *hp;
+-    
+-    memset(&ad, 0, sizeof(ad));
+-    ad.sin_family = AF_INET;
+-
+-    inaddr = inet_addr(host);
+-    if (inaddr != INADDR_NONE)
+-        memcpy(&ad.sin_addr, &inaddr, sizeof(inaddr));
+-    else
+-    {
+-        hp = gethostbyname(host);
+-        if (hp == NULL)
+-            return -1;
+-        memcpy(&ad.sin_addr, hp->h_addr, hp->h_length);
+-    }
+-    ad.sin_port = htons(clientPort);
+-    
+-    sock = socket(AF_INET, SOCK_STREAM, 0);
+-    if (sock < 0)
+-        return sock;
+-    if (connect(sock, (struct sockaddr *)&ad, sizeof(ad)) < 0)
+-        return -1;
+-    return sock;
+-}
+-
+diff -urN webbench-1.5/webbench.c webbench-1.5-bak/webbench.c
+--- webbench-1.5/webbench.c	2004-06-25 17:50:00.000000000 +0800
++++ webbench-1.5-bak/webbench.c	2020-05-03 15:15:41.193484347 +0800
+@@ -14,8 +14,15 @@
+  *    2 - bad param
+  *    3 - internal error, fork failed
+  * 
+- */ 
+-#include "socket.c"
++ */
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <stdio.h>
++#include <string.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#include <netdb.h>
++
+ #include <unistd.h>
+ #include <sys/param.h>
+ #include <rpc/types.h>
+@@ -99,6 +106,48 @@
+ 	"  -V|--version             Display program version.\n"
+ 	);
+ };
++
++int createSock(const char * addr, unsigned short port) 
++{
++	int sock;
++	int ret;
++	struct sockaddr_in svr_addr;
++	struct hostent *host = NULL;
++	
++	if (!addr) {
++		return -1;
++	}
++	bzero(&svr_addr,sizeof(struct sockaddr_in));
++
++	svr_addr.sin_addr.s_addr=inet_addr(addr);
++	if (svr_addr.sin_addr.s_addr == INADDR_NONE) {
++		//try gethostbyname
++		host = gethostbyname(addr);
++		if (!host) {
++			printf("Can not resolve address : %s\n", addr);
++			return -1;
++		}
++		memcpy(&svr_addr.sin_addr, host->h_addr, host->h_length);
++	}
++		
++	sock = socket(AF_INET, SOCK_STREAM, 0);
++	if (sock < 0) {
++		return -1;
++	}
++
++	svr_addr.sin_family=AF_INET;
++	svr_addr.sin_port = htons(port);
++
++	ret = connect(sock, (struct sockaddr*)&svr_addr, sizeof(svr_addr));
++	if (ret < 0) {
++		printf("Can not connect to address %s:%d\n", addr, port);
++		return -1;
++	}
++
++	return sock;
++}	
++
++
+ int main(int argc, char *argv[])
+ {
+  int opt=0;
+@@ -298,7 +347,7 @@
+   FILE *f;
+ 
+   /* check avaibility of target server */
+-  i=Socket(proxyhost==NULL?host:proxyhost,proxyport);
++  i=createSock(proxyhost==NULL?host:proxyhost,proxyport);
+   if(i<0) { 
+ 	   fprintf(stderr,"\nConnect to server failed. Aborting benchmark.\n");
+            return 1;
+@@ -421,7 +470,7 @@
+        }
+        return;
+     }
+-    s=Socket(host,port);                          
++    s=createSock(host,port);                          
+     if(s<0) { failed++;continue;} 
+     if(rlen!=write(s,req,rlen)) {failed++;close(s);continue;}
+     if(http10==0) 
