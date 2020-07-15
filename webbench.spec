@@ -2,15 +2,16 @@
 
 Name:    webbench
 Version: 1.5
-Release: 1
+Release: 2
 Summary: simple tool for benchmarking WWW or proxy servers
 License: GPL
 URL:	 http://home.tiscali.cz/~cz210552/webbench.html
 Source0: http://home.tiscali.cz/~cz210552/distfiles/%{name}-%{version}.tar.gz
 
 Patch0: webbench-remove-socket-file-and-reimplement-function.patch
+Patch1: fix-compile-error-include-libtirpc-because-glibc-doe.patch
 
-BuildRequires: 	gcc
+BuildRequires: 	gcc libtirpc-devel
 
 %description
 Web Bench is very simple tool for benchmarking WWW or proxy servers. Uses fork() for simulating multiple clients and can use HTTP/0.9-HTTP/1.1 requests. This benchmark is not very realistic, but it can test if your HTTPD can realy handle that many clients at once (try to run some CGIs) without taking your machine down. Displays pages/min and bytes/sec. Can be used in more aggressive mode with -f switch
@@ -19,6 +20,7 @@ Web Bench is very simple tool for benchmarking WWW or proxy servers. Uses fork()
 %setup -q -n %{name}-%{version}/
 #remove unclear license file socket.c and reimplement socket function. 
 %patch0 -p1
+%patch1 -p1
 
 %build
 %make_build
@@ -40,6 +42,8 @@ Web Bench is very simple tool for benchmarking WWW or proxy servers. Uses fork()
 %{_mandir}/*
 
 %changelog
+* Wed Jul 15 2020 Wang Xiao <wangxiao65@huawei.com> - 1.5-2
+- Fix compile error, include BuildRequires libtirpc, because glibc does not provide rpc
 * Sun Mar 29 2020 Wei Xiong <myeuler@163.com>
 - Package init
 

@@ -1,0 +1,41 @@
+From 9fe49021d6e063d42a77dd2d79681bc4bc403476 Mon Sep 17 00:00:00 2001
+From: wangxiao65 <287608437@qq.com>
+Date: Wed, 15 Jul 2020 11:22:47 +0800
+Subject: [PATCH] fix compile error, include libtirpc, because glibc does not
+ provide rpc.
+
+---
+ Makefile   | 4 ++--
+ webbench.c | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 47196bc..8e19df7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+-CFLAGS?=	-Wall -ggdb -W -O
++CFLAGS?=	-Wall -ggdb -W -O -I/usr/include/tirpc
+ CC?=		gcc
+ LIBS?=
+-LDFLAGS?=
++LDFLAGS?=       -ltirpc
+ PREFIX?=	/usr/local
+ VERSION=1.5
+ TMPDIR=/tmp/webbench-$(VERSION)
+diff --git a/webbench.c b/webbench.c
+index fa1b02f..c12d831 100644
+--- a/webbench.c
++++ b/webbench.c
+@@ -25,7 +25,7 @@
+ 
+ #include <unistd.h>
+ #include <sys/param.h>
+-#include <rpc/types.h>
++#include <tirpc/rpc/types.h>
+ #include <getopt.h>
+ #include <strings.h>
+ #include <time.h>
+-- 
+2.23.0
+
