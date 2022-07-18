@@ -2,9 +2,9 @@
 
 Name:    webbench
 Version: 1.5
-Release: 2
+Release: 3
 Summary: simple tool for benchmarking WWW or proxy servers
-License: GPL
+License: GPL-1.0-or-later
 URL:	 http://home.tiscali.cz/~cz210552/webbench.html
 Source0: http://home.tiscali.cz/~cz210552/distfiles/%{name}-%{version}.tar.gz
 
@@ -42,8 +42,12 @@ Web Bench is very simple tool for benchmarking WWW or proxy servers. Uses fork()
 %{_mandir}/*
 
 %changelog
+* Mon Jul 18 2022 wangkai <wangkai385@h-partners.com> - 1.5-3
+- License compliance rectification
+
 * Wed Jul 15 2020 Wang Xiao <wangxiao65@huawei.com> - 1.5-2
 - Fix compile error, include BuildRequires libtirpc, because glibc does not provide rpc
-* Sun Mar 29 2020 Wei Xiong <myeuler@163.com>
+
+* Sun Mar 29 2020 Wei Xiong <myeuler@163.com> - 1.5-1
 - Package init
 
