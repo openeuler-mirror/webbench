@@ -2,7 +2,7 @@
 
 Name:    webbench
 Version: 1.5
-Release: 3
+Release: 4
 Summary: simple tool for benchmarking WWW or proxy servers
 License: GPL-1.0-or-later
 URL:	 http://home.tiscali.cz/~cz210552/webbench.html
@@ -10,8 +10,9 @@ Source0: http://home.tiscali.cz/~cz210552/distfiles/%{name}-%{version}.tar.gz
 
 Patch0: webbench-remove-socket-file-and-reimplement-function.patch
 Patch1: fix-compile-error-include-libtirpc-because-glibc-doe.patch
+Patch2: fix-cflags.patch
 
-BuildRequires: 	gcc libtirpc-devel
+BuildRequires: 	gcc libtirpc-devel ctags
 
 %description
 Web Bench is very simple tool for benchmarking WWW or proxy servers. Uses fork() for simulating multiple clients and can use HTTP/0.9-HTTP/1.1 requests. This benchmark is not very realistic, but it can test if your HTTPD can realy handle that many clients at once (try to run some CGIs) without taking your machine down. Displays pages/min and bytes/sec. Can be used in more aggressive mode with -f switch
@@ -21,6 +22,7 @@ Web Bench is very simple tool for benchmarking WWW or proxy servers. Uses fork()
 #remove unclear license file socket.c and reimplement socket function. 
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %build
 %make_build
@@ -42,6 +44,9 @@ Web Bench is very simple tool for benchmarking WWW or proxy servers. Uses fork()
 %{_mandir}/*
 
 %changelog
+* Fri May 05 2023 yoo <sunyuechi@iscas.ac.cn> - 1.5-4
+- fix cflags and ctags not found
+
 * Mon Jul 18 2022 wangkai <wangkai385@h-partners.com> - 1.5-3
 - License compliance rectification
 
