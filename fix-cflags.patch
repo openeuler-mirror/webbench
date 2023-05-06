@@ -1,0 +1,12 @@
+diff -u -r webbench-1.5/Makefile webbench-1.5/Makefile
+--- webbench-1.5/Makefile	2004-06-25 17:59:19.000000000 +0800
++++ webbench-1.5/Makefile	2023-04-28 13:35:01.000000000 +0800
+@@ -1,6 +1,7 @@
+-CFLAGS?=	-Wall -ggdb -W -O -I/usr/include/tirpc
++CFLAGS?=	-Wall -ggdb -W -O
++CFLAGS+=	-I/usr/include/tirpc
+ CC?=		gcc
+ LIBS?=
+ LDFLAGS?=       -ltirpc
+ PREFIX?=	/usr/local
+ VERSION=1.5
